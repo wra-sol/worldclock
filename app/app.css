@@ -1,15 +1,362 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
-    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-mono: "JetBrains Mono", "Courier New", "Lucida Console", Monaco, monospace;
+}
+
+/* Design Token CSS Variables */
+:root {
+  /* Colors */
+  --color-terminal-bg: #000000;
+  --color-terminal-panel: #0a0a0a;
+  --color-terminal-panel-hover: #111111;
+  --color-terminal-panel-active: #166534;
+  --color-terminal-border: #22c55e;
+  --color-terminal-border-hover: #16a34a;
+  --color-terminal-text: #22c55e;
+  --color-terminal-text-secondary: #16a34a;
+  --color-terminal-text-muted: #15803d;
+  --color-terminal-text-active: #dcfce7;
+  
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.75rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.25rem;
+  --spacing-2xl: 1.5rem;
+  --spacing-3xl: 2rem;
+  --spacing-4xl: 2.5rem;
+  --spacing-5xl: 3rem;
+  
+  /* Shadows */
+  --shadow-terminal: inset 0 1px 0 rgba(34, 197, 94, 0.2), 0 2px 10px rgba(0, 0, 0, 0.5);
+  --shadow-terminal-hover: inset 0 1px 0 rgba(34, 197, 94, 0.3), 0 4px 20px rgba(34, 197, 94, 0.2);
+  --shadow-terminal-active: inset 0 1px 0 rgba(34, 197, 94, 0.3), 0 0 10px rgba(34, 197, 94, 0.4);
+}
+
+* {
+  box-sizing: border-box;
 }
 
 html,
 body {
-  @apply bg-white dark:bg-gray-950;
+  @apply bg-black text-green-400;
+  font-family: var(--font-mono);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
 
-  @media (prefers-color-scheme: dark) {
-    color-scheme: dark;
+/* Terminal grid background */
+.terminal-grid {
+  background-image: 
+    linear-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(34, 197, 94, 0.1) 1px, transparent 1px);
+  background-size: 40px 20px;
+}
+
+@keyframes grid-move {
+  0% { background-position: 0 0; }
+  100% { background-position: 50px 50px; }
+}
+
+
+
+/* Terminal borders and panels */
+.terminal-border {
+  border: 1px solid var(--color-terminal-border);
+}
+
+.terminal-panel {
+  background: var(--color-terminal-panel);
+  border: 1px solid var(--color-terminal-border);
+}
+
+.terminal-panel-active {
+  background: var(--color-terminal-panel-active);
+  border: 2px solid var(--color-terminal-border);
+  color: var(--color-terminal-text-active);
+  box-shadow: var(--shadow-terminal-active);
+}
+
+.terminal-row {
+  border-bottom: 1px solid var(--color-terminal-border);
+  padding: var(--spacing-xs) var(--spacing-sm);
+}
+
+.terminal-row:hover {
+  background: var(--color-terminal-panel-hover);
+}
+
+.terminal-row-selected {
+  background: var(--color-terminal-panel-hover);
+  border-left: 2px solid var(--color-terminal-border);
+}
+
+/* Terminal globe visualization */
+.terminal-globe {
+  border: 1px solid #22c55e;
+  background: #0a0a0a;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    inset 0 0 20px rgba(34, 197, 94, 0.1),
+    0 0 20px rgba(34, 197, 94, 0.2);
+  transition: all 0.3s ease;
+}
+
+.terminal-globe:hover {
+  box-shadow: 
+    inset 0 0 30px rgba(34, 197, 94, 0.15),
+    0 0 30px rgba(34, 197, 94, 0.3);
+  border-color: #16a34a;
+}
+
+.terminal-globe::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 80%;
+  height: 80%;
+  transform: translate(-50%, -50%);
+  border: 1px solid #22c55e;
+  border-radius: 50%;
+  opacity: 0.3;
+}
+
+/* Three.js globe container styling */
+.three-globe-container {
+  width: 100%;
+  height: 100%;
+  min-height: 200px;
+  background: #0a0a0a;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 640px) {
+  .three-globe-container {
+    min-height: 250px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .three-globe-container {
+    min-height: 300px;
+  }
+}
+
+.three-globe-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  border-radius: 4px;
+  cursor: grab;
+}
+
+.three-globe-container canvas:active {
+  cursor: grabbing;
+}
+
+/* Globe loading state */
+.globe-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #22c55e;
+  font-family: var(--font-mono);
+  font-size: 0.875rem;
+}
+
+.globe-loading::after {
+  content: "";
+  width: 20px;
+  height: 20px;
+  border: 2px solid #22c55e;
+  border-top: 2px solid transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-left: 8px;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Terminal blink */
+.terminal-blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+/* Terminal scrollbar */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border: 1px solid #22c55e;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+}
+
+/* Terminal button */
+.terminal-button {
+  background: var(--color-terminal-panel);
+  border: 1px solid var(--color-terminal-border);
+  color: var(--color-terminal-text);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-family: var(--font-mono);
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.terminal-button:hover {
+  background: var(--color-terminal-panel-hover);
+}
+
+.terminal-button:active {
+  background: var(--color-terminal-panel-active);
+}
+
+/* Enhanced clock display styles */
+.clock-display-enhanced {
+  background: linear-gradient(135deg, #0a0a0a 0%, #111111 100%);
+  border: 1px solid #22c55e;
+  box-shadow: 
+    inset 0 1px 0 rgba(34, 197, 94, 0.2),
+    0 2px 10px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s ease;
+}
+
+.clock-display-enhanced:hover {
+  box-shadow: 
+    inset 0 1px 0 rgba(34, 197, 94, 0.3),
+    0 4px 20px rgba(34, 197, 94, 0.2);
+  border-color: #16a34a;
+}
+
+/* Clock hand animations */
+@keyframes clock-tick {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.clock-second-hand {
+  animation: clock-tick 60s linear infinite;
+}
+
+.clock-minute-hand {
+  animation: clock-tick 3600s linear infinite;
+}
+
+.clock-hour-hand {
+  animation: clock-tick 43200s linear infinite;
+}
+
+/* Enhanced text effects */
+.clock-time-display {
+  font-variant-numeric: tabular-nums;
+}
+
+.clock-city-name {
+  text-shadow: 0 0 5px rgba(34, 197, 94, 0.3);
+  letter-spacing: 0.05em;
+}
+
+/* Day/Night indicator styles */
+.day-night-indicator {
+  filter: drop-shadow(0 0 3px rgba(34, 197, 94, 0.4));
+}
+
+/* Responsive design improvements */
+@media (max-width: 1200px) {
+  .terminal-grid {
+    background-size: 30px 15px;
+  }
+}
+
+@media (max-width: 768px) {
+  .terminal-grid {
+    background-size: 25px 12px;
+  }
+  
+  .clock-display-enhanced {
+    padding: 0.75rem;
+  }
+  
+  .clock-time-display {
+    font-size: 1.5rem;
+  }
+  
+  .three-globe-container {
+    min-height: 250px;
+  }
+}
+
+@media (max-width: 640px) {
+  .terminal-grid {
+    background-size: 20px 10px;
+  }
+  
+  .terminal-panel {
+    padding: 0.5rem;
+  }
+  
+  .terminal-row {
+    padding: 1px 2px;
+  }
+}
+
+@media (max-width: 480px) {
+  .clock-time-display {
+    font-size: 1.25rem;
+  }
+  
+  .clock-city-name {
+    font-size: 0.75rem;
+  }
+  
+  .three-globe-container {
+    min-height: 200px;
+  }
+  
+  .terminal-button {
+    padding: 2px 4px;
+    font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .terminal-grid {
+    background-size: 15px 8px;
+  }
+  
+  .clock-time-display {
+    font-size: 1rem;
+  }
+  
+  .clock-city-name {
+    font-size: 0.65rem;
   }
 }

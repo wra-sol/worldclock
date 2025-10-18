@@ -1,13 +1,13 @@
 import type { Route } from "./+types/home";
-import { Welcome } from "../welcome/welcome";
+import { WorldClock } from "../components/WorldClock";
 
 export function meta({}: Route.MetaArgs) {
   return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
+    { title: "World Clock - Global Time Monitoring System" },
+    { name: "description", content: "Retro-futuristic world clock with timezone monitoring" },
   ];
 }
 
 export default function Home() {
-  return <Welcome />;
+  return <WorldClock />;
 }
