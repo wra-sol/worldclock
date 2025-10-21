@@ -58,9 +58,146 @@ body {
   background-size: 40px 20px;
 }
 
+/* Fullscreen mode styles */
+:fullscreen .terminal-grid {
+  background-size: 50px 25px;
+  min-height: 100vh;
+  height: 100vh;
+}
+
+:fullscreen .terminal-panel {
+  border-width: 2px;
+}
+
+:fullscreen .terminal-panel-active {
+  border-width: 3px;
+  box-shadow: 
+    inset 0 1px 0 rgba(34, 197, 94, 0.4),
+    0 0 15px rgba(34, 197, 94, 0.5);
+}
+
+:fullscreen .clock-display-enhanced {
+  border-width: 2px;
+  box-shadow: 
+    inset 0 1px 0 rgba(34, 197, 94, 0.3),
+    0 4px 25px rgba(34, 197, 94, 0.3);
+}
+
+:fullscreen .clock-time-display {
+  font-size: 2.5rem;
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+:fullscreen .clock-city-name {
+  font-size: 1.25rem;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+  letter-spacing: 0.1em;
+}
+
+:fullscreen .three-globe-container {
+  min-height: 400px;
+}
+
+/* Fullscreen header adjustments */
+:fullscreen .terminal-panel.border-b-2 {
+  border-bottom-width: 3px;
+  padding: 1rem;
+}
+
+/* Fullscreen button styling */
+.terminal-button:fullscreen {
+  font-size: 1.1rem;
+  padding: 0.75rem 1rem;
+}
+
+/* Fullscreen scrollbar adjustments */
+:fullscreen ::-webkit-scrollbar {
+  width: 16px;
+}
+
+:fullscreen ::-webkit-scrollbar-thumb {
+  background: #22c55e;
+  border: 2px solid #22c55e;
+  border-radius: 8px;
+}
+
+:fullscreen ::-webkit-scrollbar-thumb:hover {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+/* Fullscreen mode class for additional styling */
+.fullscreen-mode {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+}
+
+.fullscreen-mode .terminal-grid {
+  background-size: 50px 25px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.fullscreen-mode .terminal-panel {
+  border-width: 2px;
+}
+
+.fullscreen-mode .terminal-panel-active {
+  border-width: 3px;
+  box-shadow: 
+    inset 0 1px 0 rgba(34, 197, 94, 0.4),
+    0 0 15px rgba(34, 197, 94, 0.5);
+}
+
+.fullscreen-mode .clock-display-enhanced {
+  border-width: 2px;
+  box-shadow: 
+    inset 0 1px 0 rgba(34, 197, 94, 0.3),
+    0 4px 25px rgba(34, 197, 94, 0.3);
+}
+
+.fullscreen-mode .clock-time-display {
+  font-size: 2.5rem;
+  text-shadow: 0 0 10px rgba(34, 197, 94, 0.5);
+}
+
+.fullscreen-mode .clock-city-name {
+  font-size: 1.25rem;
+  text-shadow: 0 0 8px rgba(34, 197, 94, 0.4);
+  letter-spacing: 0.1em;
+}
+
+.fullscreen-mode .three-globe-container {
+  min-height: 400px;
+}
+
+.fullscreen-mode .terminal-panel.border-b-2 {
+  border-bottom-width: 3px;
+  padding: 1rem;
+}
+
 @keyframes grid-move {
   0% { background-position: 0 0; }
   100% { background-position: 50px 50px; }
+}
+
+@keyframes fade-in {
+  0% { 
+    opacity: 0; 
+    transform: translateY(10px) scale(0.95);
+  }
+  100% { 
+    opacity: 1; 
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out forwards;
 }
 
 
@@ -94,6 +231,39 @@ body {
 .terminal-row-selected {
   background: var(--color-terminal-panel-hover);
   border-left: 2px solid var(--color-terminal-border);
+}
+
+/* Enhanced grid item styling */
+.terminal-row {
+  position: relative;
+  overflow: hidden;
+}
+
+.terminal-row::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.1), transparent);
+  transition: left 0.5s ease;
+}
+
+.terminal-row:hover::before {
+  left: 100%;
+}
+
+/* Priority section enhancements */
+.priority-section {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.05) 0%, rgba(34, 197, 94, 0.02) 100%);
+  backdrop-filter: blur(10px);
+}
+
+/* Grid section enhancements */
+.grid-section {
+  background: rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(5px);
 }
 
 /* Terminal globe visualization */
@@ -219,6 +389,19 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #16a34a;
 }
+
+/* Fixed footer styles */
+.fixed-footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  background: var(--color-terminal-panel);
+  border-top: 2px solid var(--color-terminal-border);
+}
+
+
 
 /* Terminal button */
 .terminal-button {

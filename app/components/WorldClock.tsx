@@ -8,38 +8,29 @@ import { MobileMenu } from "./MobileMenu";
 import { HeaderBar } from "./HeaderBar";
 import { FooterBar } from "./FooterBar";
 import { usePublicIP } from "../lib/usePublicIP";
+import { useLocalStorage } from "../lib/hooks/useLocalStorage";
+import { useFullscreen } from "../lib/hooks/useFullscreen";
+import { useResponsive } from "../lib/hooks/useResponsive";
+import { useWeather } from "../lib/hooks/useWeather";
+import { useNews } from "../lib/hooks/useNews";
 import { ThreeGlobe } from "./ThreeGlobe";
 
 export function WorldClock() {
-  const [highlightedTimezones, setHighlightedTimezones] = useState<Timezone[]>(
-    () => {
-      if (typeof window !== "undefined") {
-        const saved = localStorage.getItem("highlightedTimezones");
-        return saved ? JSON.parse(saved) : [];
-      }
-      return [];
-    }
-  );
-  const [isMobile, setIsMobile] = useState(false);
+  const [highlightedTimezones, setHighlightedTimezones] = useLocalStorage<Timezone[]>("highlightedTimezones", []);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [clockMode, setClockMode] = useState<ClockMode>(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("clockMode");
-      return (saved as ClockMode) || "digital";
-    }
-    return "digital";
-  });
-  const { publicIP, userAgent, isLoading: ipLoading } = usePublicIP();
+  const [clockMode, setClockMode] = useLocalStorage<ClockMode>("clockMode", "digital");
+  const [isHydrated, setIsHydrated] = useState(false);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
+  const { isMobile } = useResponsive();
+const { publicIP, userAgent, isLoading: ipLoading } = usePublicIP();
+  const weather = useWeather(publicIP);
+  const news = useNews();
 
+  // Prevent hydration mismatch by only rendering after hydration
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
+    setIsHydrated(true);
   }, []);
+
 
   const handleToggleHighlight = (timezone: Timezone) => {
     setHighlightedTimezones((prev) => {
@@ -56,25 +47,15 @@ export function WorldClock() {
     });
   };
 
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(
-        "highlightedTimezones",
-        JSON.stringify(highlightedTimezones)
-      );
-    }
-  }, [highlightedTimezones]);
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem("clockMode", clockMode);
-    }
-  }, [clockMode]);
 
   const handleRemoveHighlight = (timezoneId: string) => {
     setHighlightedTimezones((prev) =>
       prev.filter((tz) => tz.id !== timezoneId)
     );
+  };
+
+  const handleReorderTimezones = (reorderedTimezones: Timezone[]) => {
+    setHighlightedTimezones(reorderedTimezones);
   };
 
   const handleGlobeClick = () => {
@@ -83,71 +64,63 @@ export function WorldClock() {
     }
   };
 
+
+  // Show loading state during hydration
+  if (!isHydrated) {
+    return (
+      <div className="flex flex-col terminal-grid min-h-screen">
+        <div className="flex items-center justify-center h-screen">
+          <div className="text-green-600 text-lg">Loading...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col terminal-grid min-h-screen">
-      {/* Header Bar */}
-      <HeaderBar
-        publicIP={publicIP}
-        userAgent={userAgent || ""}
-        ipLoading={ipLoading}
-        clockMode={clockMode}
-        onClockModeChange={setClockMode}
-      />
+    <div className={`flex flex-col terminal-grid h-screen ${isFullscreen ? 'fullscreen-mode' : ''}`}>
+      {/* Fixed Header Bar */}
+      <div className="flex-shrink-0">
+        <HeaderBar
+          publicIP={publicIP}
+          userAgent={userAgent || ""}
+          ipLoading={ipLoading}
+          clockMode={clockMode}
+          onClockModeChange={setClockMode}
+          isFullscreen={isFullscreen}
+          onToggleFullscreen={toggleFullscreen}
+        />
+      </div>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Priority Timezones - Full Width */}
-        <div className="border-b border-green-600 p-2 sm:p-4 mb-2 sm:mb-4">
-          <div className="text-green-600 text-xs mb-2 sm:mb-3 uppercase tracking-wider">
-            Priority Zones
-          </div>
+      {/* Fixed Priority Timezones */}
+      <div className="flex-shrink-0 border-b-2 border-green-600/30 bg-green-900/5 p-2 sm:p-4">
+        <div className="text-green-400 text-xs mb-2 sm:mb-3 uppercase tracking-widest font-semibold flex items-center gap-2">
+          <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></div>
+          Priority Timezones
+        </div>
+        <HighlightedRow
+          highlightedTimezones={highlightedTimezones}
+          onRemoveHighlight={handleRemoveHighlight}
+          onReorderTimezones={handleReorderTimezones}
+          clockMode={clockMode}
+        />
+      </div>
 
-          <HighlightedRow
+      {/* All Timezones Container - Full Height */}
+      <div className="flex-1 overflow-hidden flex flex-col px-2 sm:px-4 pb-20">
+        <div className="flex-1 flex">
+          <TimezoneGrid
+            timezones={TIMEZONES}
             highlightedTimezones={highlightedTimezones}
-            onRemoveHighlight={handleRemoveHighlight}
+            onToggleHighlight={handleToggleHighlight}
             clockMode={clockMode}
           />
         </div>
-
-        {/* Below Section - Global Monitor + Timezones */}
-        <div className="flex-1 flex flex-col xl:flex-row gap-2 sm:gap-4 px-2 sm:px-4">
-          {/* Left Panel - Globe */}
-{/*           <div className="xl:w-1/3 border-r-0 xl:border-r border-green-600 px-2 sm:px-4">
-            <div className="terminal-panel p-2 h-full overflow-y-auto">
-              <div className="text-green-600 text-xs mb-2 uppercase">
-                Global Monitor
-              </div>
-              <div
-                onClick={handleGlobeClick}
-                className={isMobile ? "cursor-pointer" : ""}
-              >
-                <ThreeGlobe timezonePreset="DARK_GREEN" />
-                {isMobile && (
-                  <div className="text-center mt-2">
-                    <div className="text-green-600 text-xs">
-                      {showMobileMenu ? "[CLOSE MENU]" : "[TAP TO MANAGE]"}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div> */}
-
-          {/* All Timezones */}
-          <div className="flex-1 overflow-y-auto pb-2 sm:pb-4">
-
-              <TimezoneGrid
-                timezones={TIMEZONES}
-                highlightedTimezones={highlightedTimezones}
-                onToggleHighlight={handleToggleHighlight}
-                clockMode={clockMode}
-              />
-          </div>
-        </div>
       </div>
 
-      {/* Footer Bar */}
-      <FooterBar timestamp={new Date().toISOString()} />
+      {/* Fixed Footer Bar */}
+      <div className="fixed bottom-0 left-0 right-0 z-50">
+        <FooterBar news={news} weather={weather}/>
+      </div>
 
       {/* Mobile Menu Overlay */}
       {isMobile && showMobileMenu && (

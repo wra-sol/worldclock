@@ -1,12 +1,14 @@
-import type { HeaderBarProps } from '../lib/types';
-import { Button } from './ui';
+import type { HeaderBarProps } from "../lib/types";
+import { Button, ModeToggle } from "./ui";
 
-export function HeaderBar({ 
-  publicIP, 
-  userAgent, 
-  ipLoading, 
-  clockMode, 
-  onClockModeChange 
+export function HeaderBar({
+  publicIP,
+  userAgent,
+  ipLoading,
+  clockMode,
+  onClockModeChange,
+  isFullscreen,
+  onToggleFullscreen,
 }: HeaderBarProps) {
   return (
     <div className="terminal-panel border-b-2">
@@ -26,45 +28,39 @@ export function HeaderBar({
               {new Date().toLocaleTimeString()}
             </span>
           </div>
-        </div>
-
-        {/* Right Section - Browser Info and Mode Controls */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
           <div className="flex items-center space-x-2 text-xs sm:text-sm">
             <span className="text-green-600">BROWSER:</span>
             <span className="text-green-400">
               {userAgent ? userAgent.split(" ")[0] : "Unknown"}
             </span>
           </div>
-          
+        </div>
+
+        {/* Right Section - Browser Info and Mode Controls */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <ModeToggle
+            modes={[
+              { value: "digital", label: "DIGITAL" },
+              { value: "analog", label: "ANALOG" },
+              { value: "hybrid", label: "HYBRID" },
+            ]}
+            currentMode={clockMode}
+            onModeChange={onClockModeChange}
+            label="MODE"
+            size="sm"
+          />
+
+          {/* Fullscreen Toggle */}
           <div className="flex items-center space-x-2">
-            <span className="text-green-600 text-xs sm:text-sm">MODE:</span>
-            <div className="flex space-x-1">
-              <Button
-                variant={clockMode === "digital" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => onClockModeChange("digital")}
-                className={clockMode === "digital" ? "terminal-panel-active" : ""}
-              >
-                [DIGITAL]
-              </Button>
-              <Button
-                variant={clockMode === "analog" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => onClockModeChange("analog")}
-                className={clockMode === "analog" ? "terminal-panel-active" : ""}
-              >
-                [ANALOG]
-              </Button>
-              <Button
-                variant={clockMode === "hybrid" ? "primary" : "secondary"}
-                size="sm"
-                onClick={() => onClockModeChange("hybrid")}
-                className={clockMode === "hybrid" ? "terminal-panel-active" : ""}
-              >
-                [HYBRID]
-              </Button>
-            </div>
+            <Button
+              variant={isFullscreen ? "primary" : "secondary"}
+              size="sm"
+              onClick={onToggleFullscreen}
+              className={isFullscreen ? "terminal-panel-active" : ""}
+              aria-label={isFullscreen ? "Exit fullscreen" : "Enter fullscreen"}
+            >
+              {isFullscreen ? "[EXIT FS]" : "[FULLSCREEN]"}
+            </Button>
           </div>
         </div>
       </div>

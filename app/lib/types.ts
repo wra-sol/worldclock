@@ -2,8 +2,9 @@
 
 export type ClockMode = 'digital' | 'analog' | 'hybrid';
 
-// Re-export Timezone from timezones for convenience
-export type { Timezone } from './timezones';
+// Import and re-export Timezone from timezones for convenience
+import type { Timezone } from './timezones';
+export type { Timezone };
 
 export interface TimeInfo {
   hours: number;
@@ -19,6 +20,39 @@ export interface PublicIPData {
   publicIP: string;
   userAgent: string;
   isLoading: boolean;
+}
+
+export interface LocationData {
+  latitude: number;
+  longitude: number;
+  city: string;
+  region: string;
+  country: string;
+  ip: string;
+  timestamp: number;
+}
+
+export interface WeatherData {
+  temperature: number;
+  condition: string;
+  icon: string;
+  location: string;
+  isLoading: boolean;
+  error?: string;
+}
+
+export interface NewsItem {
+  title: string;
+  link: string;
+  description: string;
+  pubDate: string;
+  category?: string;
+}
+
+export interface NewsData {
+  items: NewsItem[];
+  isLoading: boolean;
+  error?: string;
 }
 
 // Component Props Types
@@ -56,15 +90,19 @@ export interface HeaderBarProps extends BaseComponentProps {
   ipLoading: boolean;
   clockMode: ClockMode;
   onClockModeChange: (mode: ClockMode) => void;
+  isFullscreen: boolean;
+  onToggleFullscreen: () => void;
 }
 
 export interface FooterBarProps extends BaseComponentProps {
-  timestamp: string;
+  weather: WeatherData | null;
+  news: NewsData;
 }
 
 export interface HighlightedRowProps extends BaseComponentProps {
   highlightedTimezones: Timezone[];
   onRemoveHighlight: (timezoneId: string) => void;
+  onReorderTimezones: (timezones: Timezone[]) => void;
   clockMode: ClockMode;
 }
 
